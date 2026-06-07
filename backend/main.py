@@ -6,6 +6,8 @@ import re
 from nltk.corpus import stopwords
 from database import engine
 from models import Base
+from database import SessionLocal, engine
+from models import Base, ResumeAnalysis
 
 Base.metadata.create_all(bind=engine)
 
@@ -91,9 +93,42 @@ async def upload_resume(
         matched,
         len(matched) + len(missing)
     )
+    db = SessionLocal()
 
+    analysis = ResumeAnalysis(
+    ats_score=ats_score,
+    matched_keywords=", ".join(matched[:20]),
+    missing_keywords=", ".join(missing[:20])
+)
+
+    db.add(analysis)
+    db.commit()
+    db.refresh(analysis)
+
+    db.close()
     return {
+        "analysis_id": analysis.id,
         "ats_score": ats_score,
         "matched_keywords": matched[:20],
         "missing_keywords": missing[:20]
     }
+@app.get("/history")
+def get_history():
+
+    db = SessionLocal()
+
+    analyses = db.query(ResumeAnalysis).all()
+
+    result = []
+
+    for item in analyses:
+        result.append({
+            "id": item.id,
+            "ats_score": item.ats_score,
+            "matched_keywords": item.matched_keywords,
+            "missing_keywords": item.missing_keywords
+        })
+
+    db.close()
+
+    return result
