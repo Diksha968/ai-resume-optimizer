@@ -4,6 +4,10 @@ from fastapi import FastAPI, UploadFile, File, Form
 import pdfplumber
 import re
 from nltk.corpus import stopwords
+from database import engine
+from models import Base
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
