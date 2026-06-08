@@ -8,6 +8,7 @@ from database import engine
 from models import Base
 from database import SessionLocal, engine
 from models import Base, ResumeAnalysis
+from utils.recommendations import generate_recommendations
 
 Base.metadata.create_all(bind=engine)
 
@@ -57,6 +58,7 @@ def match_keywords(resume_text, job_description):
 
     matched = resume_words.intersection(jd_words)
     missing = jd_words - resume_words
+    
 
     return list(matched), list(missing)
 
@@ -87,6 +89,7 @@ async def upload_resume(
         resume_text,
         job_description
     )
+    recommendations = generate_recommendations(missing)
 
     # Calculate ATS score
     ats_score = calculate_ats_score(
@@ -110,7 +113,8 @@ async def upload_resume(
         "analysis_id": analysis.id,
         "ats_score": ats_score,
         "matched_keywords": matched[:20],
-        "missing_keywords": missing[:20]
+        "missing_keywords": missing[:20],
+        "recommendations": recommendations
     }
 @app.get("/history")
 def get_history():

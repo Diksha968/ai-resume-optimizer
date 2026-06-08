@@ -1,5 +1,6 @@
 import re
 from nltk.corpus import stopwords
+from utils.recommendations import extract_skills
 
 
 def extract_keywords(text):
@@ -18,11 +19,11 @@ def extract_keywords(text):
 
 
 def match_keywords(resume_text, job_description):
+    resume_skills = extract_skills(resume_text)
+    jd_skills = extract_skills(job_description)
 
-    resume_words = extract_keywords(resume_text)
-    jd_words = extract_keywords(job_description)
+    matched = resume_skills.intersection(jd_skills)
+    missing = jd_skills - resume_skills
 
-    matched = resume_words.intersection(jd_words)
-    missing = jd_words - resume_words
 
     return list(matched), list(missing)
